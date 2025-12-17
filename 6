@@ -1,1 +1,32 @@
+import logging, time, mlflow, mlflow.sklearn, pandas as pd, matplotlib.pyplot as plt
+from sklearn.datasets import load_diabetes
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
 
+# 1. Setup
+logging.basicConfig(filename="log.log", level=logging.INFO)
+X, y = load_diabetes(return_X_y=True)
+Xt, Xv, yt, yv = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 2. MLflow Run
+mlflow.set_experiment("Ridge_Exp")
+with mlflow.start_run():
+    t0 = time.time()
+    # Train & Predict
+    model = Ridge(alpha=1.0).fit(Xt, yt)
+    y_pred = model.predict(Xv)
+    
+    # Metrics
+    mse, r2 = mean_squared_error(yv, y_pred), r2_score(yv, y_pred)
+    run_time = time.time() - t0
+
+    # Log Everything
+    mlflow.log_param("alpha", 1.0)
+    mlflow.log_metrics({"mse": mse, "r2": r2, "runtime": run_time})
+    mlflow.sklearn.log_model(model, "model")
+    logging.info(f"MSE: {mse:.2f}, R2: {r2:.2f}")
+
+# 3. Save & Plot
+pd.DataFrame([{"mse": mse, "r2": r2}]).to_csv("res.csv", index=False)
+plt.bar(["MSE", "R2"], [mse, r2]); plt.title("Results"); plt.show()
