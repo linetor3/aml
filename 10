@@ -1,1 +1,42 @@
 
+!pip install catboost
+import time, matplotlib.pyplot as plt, pandas as pd, numpy as np
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split as tts, GridSearchCV as GS
+from sklearn.ensemble import GradientBoostingClassifier as GBC
+from xgboost import XGBClassifier as XGB
+from lightgbm import LGBMClassifier as LGB
+from catboost import CatBoostClassifier as CBC
+
+# 1. Data
+X, y = load_breast_cancer(return_X_y=True)
+Xt, Xv, yt, yv = tts(X, y, test_size=0.2, random_state=42)
+
+# 2. Configs: (Name, Model, ParamGrid)
+confs = [
+    ("GB", GBC(), {'n_estimators':[50], 'max_depth':[3]}),
+    ("XGB", XGB(eval_metric='logloss'), {'n_estimators':[50], 'max_depth':[3]}),
+    ("LGB", LGB(), {'n_estimators':[50], 'max_depth':[3]}),
+    ("Cat", CBC(verbose=0), {'iterations':[50], 'depth':[3]})
+]
+
+# 3. Train & Feature Plot
+res = []; plt.figure(figsize=(12, 3))
+for i, (name, mod, p) in enumerate(confs):
+    t0 = time.time()
+    gs = GS(mod, p, cv=3).fit(Xt, yt)
+    tm = time.time() - t0; acc = gs.score(Xv, yv)
+    res.append({'Model':name, 'Acc':acc, 'Time':tm})
+    
+    # Feature Imp Plot
+    plt.subplot(1, 4, i+1); plt.title(name)
+    imp = gs.best_estimator_.get_feature_importance() if name=="Cat" else gs.best_estimator_.feature_importances_
+    plt.bar(range(5), np.sort(imp)[::-1][:5]) # Top 5 feats
+
+plt.tight_layout(); plt.show()
+
+# 4. Results & Scatter
+df = pd.DataFrame(res); print(df)
+plt.scatter(df.Time, df.Acc)
+for _, r in df.iterrows(): plt.text(r.Time, r.Acc, r.Model)
+plt.xlabel("Time (s)"); plt.ylabel("Accuracy"); plt.show()
