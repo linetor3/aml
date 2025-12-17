@@ -1,1 +1,21 @@
 
+import shap, pandas as pd, numpy as np
+from sklearn.datasets import load_breast_cancer
+from sklearn.ensemble import RandomForestClassifier
+
+# 1. Train
+X, y = load_breast_cancer(return_X_y=True, as_frame=True)
+model = RandomForestClassifier(random_state=42).fit(X, y)
+
+# 2. Get SHAP Values (Handle List vs Array output)
+sv = shap.TreeExplainer(model).shap_values(X)
+if isinstance(sv, list):       
+    sv = sv[1]
+elif np.ndim(sv) == 3:         
+    sv = sv[:, :, 1]
+
+# 3. Print Importance (Feature-wise mean absolute value)
+print(pd.Series(np.abs(sv).mean(axis=0), index=X.columns).sort_values(ascending=False))
+
+# 4. Plot
+shap.summary_plot(sv, X)
