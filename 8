@@ -1,1 +1,22 @@
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sample dataset
+X = np.linspace(0, 10, 30)
+y = np.sin(X) + np.random.randn(30) * 0.2
+
+# LWR function
+def lwr(x, X, y, tau):
+    w = np.exp(-(X - x)**2 / (2 * tau**2))
+    return np.sum(w * y) / np.sum(w)
+
+# Predictions
+X_test = np.linspace(0, 10, 100)
+y_pred = [lwr(x, X, y, tau=0.5) for x in X_test]
+
+# Plot
+plt.scatter(X, y, label="Data")
+plt.plot(X_test, y_pred, color="red", label="LWR Fit")
+plt.legend()
+plt.show()
