@@ -1,1 +1,26 @@
 
+import numpy as np, matplotlib.pyplot as plt
+
+# 1. Data (N=100)
+data = np.random.normal(5, 2, 100)
+mu=0
+sig =1
+mu_tr =[]
+sig_tr =[]
+
+# 2. Gibbs Loop
+for _ in range(2000):
+    mu = np.random.normal(data.mean(), sig/10) 
+    sig = (1 / np.random.gamma(50, 2/((data-mu)**2).sum()))**0.5
+    mu_tr.append(mu); sig_tr.append(sig)
+
+# 3. Plot
+plt.subplot(211)
+plt.plot(mu_tr)
+plt.axhline(5, c='r')
+
+plt.subplot(212)
+plt.plot(sig_tr)
+plt.axhline(2, c='r')
+
+plt.show()
