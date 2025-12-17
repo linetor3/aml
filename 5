@@ -1,1 +1,22 @@
 
+!pip install hmmlearn
+from sklearn.datasets import fetch_openml
+from sklearn.preprocessing import OrdinalEncoder
+from hmmlearn.hmm import CategoricalHMM as CHMM
+import matplotlib.pyplot as plt
+
+# 1. Load & Encode Data (Requires Internet)
+X, y = fetch_openml('weather', version=2, return_X_y=True, parser='pandas')
+X_enc = OrdinalEncoder().fit_transform(X).astype(int) # HMM needs integers
+
+# 2. Model (Unsupervised: we don't know true states, we just find patterns)
+model= CHMM(n_components=2, n_iter=100).fit(X_enc)
+
+# 3. Predict Hidden States
+print("Pred States:", model.decode(X_enc)[1])
+
+# 4. Plot Transition Matrix
+plt.imshow(m.transmat_, cmap='Blues')
+plt.colorbar()
+plt.title("Transition Probabilities")
+plt.show()
