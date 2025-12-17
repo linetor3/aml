@@ -1,1 +1,33 @@
 
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import StackingClassifier
+
+data=load_breast_cancer()
+x=data.data
+y=data.target
+
+models=[
+    ("LogisticRegression",LogisticRegression(max_iter=5000)),
+    ("KNN",KNeighborsClassifier()),
+    ("DecisionTree",DecisionTreeClassifier()),
+    ("SVM",SVC(kernel="linear",probability=True)),
+    ("NaiveBayes",GaussianNB())
+]
+
+for name,model in models:
+    score=cross_val_score(model,x,y,cv=5).mean()
+    print(name,"Mean Accuracy:",round(score,4))
+
+stacking=StackingClassifier(
+    estimators=models,
+    final_estimator=LogisticRegression()
+)
+
+stack_score=cross_val_score(stacking,x,y,cv=5).mean()
+print("Stacking Mean Accuracy:",round(stack_score,4))
