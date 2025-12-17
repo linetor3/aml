@@ -1,1 +1,22 @@
 
+from sklearn import datasets, model_selection, svm, metrics
+import seaborn as sns, matplotlib.pyplot as plt
+
+# 1. Prepare Data
+X, y = datasets.load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 2. Grid Search (Find best parameters)
+params = [
+    {'kernel': ['linear'], 'C': [0.1, 1, 10, 100]},
+    {'kernel': ['poly'],   'C': [0.1, 1, 10], 'degree': [2, 3, 4]},
+    {'kernel': ['rbf'],    'C': [0.1, 1, 10], 'gamma': ['scale', 0.1, 0.01]}
+]
+model = model_selection.GridSearchCV(svm.SVC(), params, cv=5).fit(X_train, y_train)
+
+# 3. Results & Plot
+print("Best:", model.best_params_)
+print(metrics.classification_report(y_test, model.predict(X_test)))
+
+sns.heatmap(metrics.confusion_matrix(y_test, model.predict(X_test)), annot=True, cmap="Blues")
+plt.show()
