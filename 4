@@ -1,1 +1,22 @@
 
+from sklearn.datasets import load_iris
+from sklearn.tree import DecisionTreeClassifier 
+from sklearn.model_selection import GridSearchCV, validation_curve
+import matplotlib.pyplot as plt
+
+# 1. Load Data
+X, y = load_iris(return_X_y=True)
+model = DecisionTreeClassifier()
+
+# 2. Grid Search (Chained fit)
+grid_search = GridSearchCV(model, {'max_depth': [2, 4, 6], 'min_samples_split': [2, 5]}, cv=5).fit(X, y)
+print(grid_search.best_params_)
+
+# 3. Validation Curve
+param_range = range(1, 15)
+train, test = validation_curve(model, X, y, param_name="max_depth", param_range=param_range, cv=5)
+
+# 4. Plot (Mean of scores)
+plt.plot(param_range, train.mean(1), label="Train")
+plt.plot(param_range, test.mean(1), label="CV")
+plt.legend(); plt.show()
